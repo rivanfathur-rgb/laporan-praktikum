@@ -1,5 +1,5 @@
 
-# GENERATOR LAPORAN PRAKTIKUM
+# GENERATOR LAPORAN PRAKTIKUM (BELUM SELESAI MASIH BELUM SESUAI FORMAT)
 
 Generator Laporan Praktikum merupakan aplikasi berbasis HTML dan JavaScript yang digunakan untuk menyusun laporan praktikum secara otomatis dalam format Microsoft Word (.docx).
 
