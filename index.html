@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generator Laporan Praktikum</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#1b1f24; --card:#fff; --line:#d0d7de; --acc:#1f6feb; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --card:#161b22; --line:#30363d; --acc:#4493f8; } }
+  body { margin:0; font:16px/1.5 system-ui,Arial,sans-serif; background:var(--bg); color:var(--fg); }
+  main { max-width:720px; margin:0 auto; padding:16px; }
+  h1 { font-size:1.4rem; } h2 { font-size:1.05rem; margin:24px 0 8px; }
+  label { display:block; margin:12px 0 4px; font-weight:600; }
+  small { display:block; opacity:.7; margin-top:2px; }
+  input, textarea { width:100%; box-sizing:border-box; padding:10px; font:inherit; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:8px; }
+  textarea { min-height:130px; resize:vertical; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .help { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; font-size:.9rem; }
+  code { background:rgba(127,127,127,.2); padding:1px 5px; border-radius:4px; }
+  .btns { display:flex; gap:10px; margin:24px 0; }
+  button { flex:1; padding:14px; font:inherit; font-weight:700; border:0; border-radius:8px; background:var(--acc); color:#fff; cursor:pointer; }
+  button.sec { background:transparent; color:inherit; border:1px solid var(--line); flex:0 0 auto; padding:14px 18px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Generator Laporan Praktikum</h1>
+  <div class="help">
+    Isi tiap kolom, lalu klik <b>Buat Laporan</b>. Format (font, margin, spasi, penomoran) diatur otomatis.<br>
+    Rumus: LaTeX diapit dolar, mis. <code>$I_{1}=\frac{V_{1}}{R_{1}}$</code>. Satu baris yang hanya berisi rumus akan di tengah.<br>
+    Miring: <code>*teks*</code> &nbsp; Tebal: <code>**teks**</code> &nbsp; Subjudul (Dasar Teori): <code>## Judul</code><br>
+    Gambar dan logo disisipkan manual di Word. Draf tersimpan otomatis di perangkat ini.
+  </div>
+
+  <h2>Sampul</h2>
+  <div class="row">
+    <div><label for="modul">Nomor modul</label><input id="modul" placeholder="4"></div>
+    <div><label for="waktu">Bulan dan tahun</label><input id="waktu" placeholder="November 2026"></div>
+  </div>
+  <label for="judul">Judul praktikum</label><input id="judul" placeholder="Analisis Rangkaian Mesh">
+  <label for="matkul">Mata kuliah</label><input id="matkul" placeholder="Rangkaian Listrik 1">
+  <label for="dosen">Dosen pembimbing</label><input id="dosen">
+  <label for="nama">Nama</label><input id="nama">
+  <div class="row">
+    <div><label for="nim">NIM</label><input id="nim"></div>
+    <div><label for="kelas">Kelas</label><input id="kelas" placeholder="D4 TRSE 26 – C"></div>
+  </div>
+  <label for="institusi">Blok institusi (satu baris per baris)</label>
+  <textarea id="institusi" style="min-height:110px"></textarea>
+
+  <h2>Isi laporan</h2>
+  <label for="latar">Latar belakang</label><textarea id="latar"></textarea><small>Satu baris = satu paragraf.</small>
+  <label for="tujuan">Tujuan praktikum</label><textarea id="tujuan"></textarea><small>Satu baris = satu butir (a, b, c).</small>
+  <label for="teori">Dasar teori</label><textarea id="teori"></textarea><small>Satu baris = satu paragraf. Awali <code>## </code> untuk subjudul, <code>- </code> untuk butir.</small>
+  <label for="alat">Alat dan bahan</label><textarea id="alat"></textarea><small>Satu baris = satu butir.</small>
+  <label for="prosedur">Prosedur percobaan</label><textarea id="prosedur"></textarea><small>Awali <code>- </code> untuk langkah bernomor huruf. Baris berawalan "Gambar" atau "Tabel" jadi keterangan di tengah dan miring.</small>
+  <label for="kesimpulan">Kesimpulan</label><textarea id="kesimpulan"></textarea><small>Satu baris = satu butir.</small>
+  <label for="pustaka">Daftar pustaka</label><textarea id="pustaka"></textarea><small>Satu baris = satu pustaka, mis. <code>[1] Penulis, *Judul Buku*, ...</code></small>
+
+  <div class="btns">
+    <button type="button" id="reset" class="sec">Kosongkan</button>
+    <button type="button" id="go">Buat Laporan (.docx)</button>
+  </div>
+</main>
+
+<script src="vendor/docx.js"></script>
+<script src="app.js"></script>
+<script>
+  const IDS = ["modul","waktu","judul","matkul","dosen","nama","nim","kelas","institusi","latar","tujuan","teori","alat","prosedur","kesimpulan","pustaka"];
+  const INSTITUSI = "UNIVERSITAS NEGERI MALANG\nFAKULTAS VOKASI\nDEPARTEMEN TEKNOLOGI REKAYASA\nPROGRAM STUDI D4 TEKNOLOGI REKAYASA SISTEM ELEKTRONIKA";
+  const $ = id => document.getElementById(id);
+  const KEY = "laporan-draf-v1";
+  function load() {
+    let s = {};
+    try { s = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+    IDS.forEach(id => { $(id).value = s[id] ?? (id === "institusi" ? INSTITUSI : ""); });
+  }
+  function save() {
+    const s = {}; IDS.forEach(id => s[id] = $(id).value);
+    try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+  }
+  IDS.forEach(id => $(id).addEventListener("input", save));
+  $("reset").onclick = () => { if (confirm("Kosongkan semua isian?")) { try { localStorage.removeItem(KEY); } catch (e) {} load(); } };
+  $("go").onclick = async () => {
+    const d = {}; IDS.forEach(id => d[id] = $(id).value);
+    try {
+      const blob = await docx.Packer.toBlob(buildReport(d));
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "Laporan Praktikum Modul " + (d.modul || "") + ".docx";
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) { alert("Gagal membuat laporan: " + e.message); }
+  };
+  load();
+</script>
+</body>
+</html>
