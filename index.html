@@ -3,95 +3,1016 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>Generator Laporan Praktikum</title>
+
 <style>
-  :root { --bg:#f6f7f9; --fg:#1b1f24; --card:#fff; --line:#d0d7de; --acc:#1f6feb; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#0d1117; --fg:#e6edf3; --card:#161b22; --line:#30363d; --acc:#4493f8; } }
-  body { margin:0; font:16px/1.5 system-ui,Arial,sans-serif; background:var(--bg); color:var(--fg); }
-  main { max-width:720px; margin:0 auto; padding:16px; }
-  h1 { font-size:1.4rem; } h2 { font-size:1.05rem; margin:24px 0 8px; }
-  label { display:block; margin:12px 0 4px; font-weight:600; }
-  small { display:block; opacity:.7; margin-top:2px; }
-  input, textarea { width:100%; box-sizing:border-box; padding:10px; font:inherit; color:inherit; background:var(--card); border:1px solid var(--line); border-radius:8px; }
-  textarea { min-height:130px; resize:vertical; }
-  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .help { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; font-size:.9rem; }
-  code { background:rgba(127,127,127,.2); padding:1px 5px; border-radius:4px; }
-  .btns { display:flex; gap:10px; margin:24px 0; }
-  button { flex:1; padding:14px; font:inherit; font-weight:700; border:0; border-radius:8px; background:var(--acc); color:#fff; cursor:pointer; }
-  button.sec { background:transparent; color:inherit; border:1px solid var(--line); flex:0 0 auto; padding:14px 18px; }
+  :root {
+    color-scheme: light;
+
+    --bg: #f6f8fa;
+    --card: #ffffff;
+    --line: #d8dee4;
+    --line-soft: #eaeef2;
+    --fg: #1f2328;
+    --muted: #59636e;
+    --acc: #0969da;
+    --acc-dark: #0550ae;
+    --acc-soft: #ddf4ff;
+    --ok: #1a7f37;
+    --err: #cf222e;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  /* ---------- Kepala halaman ---------- */
+
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .topbar-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .topbar h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.3;
+  }
+
+  .topbar p {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: .92rem;
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: .82rem;
+    color: var(--muted);
+    background: var(--bg);
+    white-space: nowrap;
+  }
+
+  .status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9aa4af;
+  }
+
+  .status[data-state="ok"] { color: var(--ok); border-color: #aceebb; background: #f0fbf3; }
+  .status[data-state="ok"]::before { background: var(--ok); }
+  .status[data-state="error"] { color: var(--err); border-color: #ffcecb; background: #fff5f5; }
+  .status[data-state="error"]::before { background: var(--err); }
+
+  /* ---------- Isi halaman ---------- */
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 8px 16px 48px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: 0 1px 2px rgba(31, 35, 40, .04);
+  }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .badge {
+    flex: 0 0 auto;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--acc-soft);
+    color: var(--acc-dark);
+    font-weight: 700;
+    font-size: .85rem;
+  }
+
+  .card h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .card-note {
+    margin: 4px 0 8px;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+
+  .sub {
+    margin: 22px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .sub:first-of-type { border-top: 0; padding-top: 0; margin-top: 12px; }
+
+  /* ---------- Formulir ---------- */
+
+  label {
+    display: block;
+    margin: 14px 0 6px;
+    font-weight: 600;
+    font-size: .93rem;
+  }
+
+  .sub > label:first-child { margin-top: 0; }
+
+  input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font: inherit;
+    color: var(--fg);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  input::placeholder, textarea::placeholder { color: #8c959f; }
+
+  input:focus-visible, textarea:focus-visible {
+    outline: none;
+    border-color: var(--acc);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, .18);
+  }
+
+  textarea {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.5;
+    overflow-y: auto;
+  }
+
+  textarea.short { min-height: 100px; }
+
+  input[type="file"] {
+    padding: 8px;
+    background: var(--bg);
+    font-size: .9rem;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: .84rem;
+  }
+
+  .count {
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: .8rem;
+    font-variant-numeric: tabular-nums;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--line-soft);
+  }
+
+  code {
+    font: .85em ui-monospace, SFMono-Regular, Consolas, monospace;
+    background: #eff1f3;
+    padding: 1px 5px;
+    border-radius: 5px;
+  }
+
+  /* ---------- Panduan lipat ---------- */
+
+  details.guide {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin: 16px 0;
+    box-shadow: 0 1px 2px rgba(31, 35, 40, .04);
+  }
+
+  details.guide summary {
+    cursor: pointer;
+    padding: 14px 20px;
+    font-weight: 600;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  details.guide summary::-webkit-details-marker { display: none; }
+
+  details.guide summary::before {
+    content: "▸";
+    color: var(--muted);
+    transition: transform .15s;
+  }
+
+  details.guide[open] summary::before { transform: rotate(90deg); }
+
+  details.guide summary:focus-visible {
+    outline: 2px solid var(--acc);
+    outline-offset: -2px;
+    border-radius: var(--radius);
+  }
+
+  .guide-body {
+    padding: 0 20px 18px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .guide-body p {
+    margin: 12px 0 8px;
+    font-size: .92rem;
+    color: var(--muted);
+  }
+
+  table.syntax {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+  }
+
+  table.syntax th, table.syntax td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+
+  table.syntax th {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+  }
+
+  .scroll-x { overflow-x: auto; }
+
+  /* ---------- Tombol ---------- */
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font: inherit;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+
+  button#go {
+    flex: 1 1 240px;
+    background: var(--acc);
+    color: #fff;
+  }
+
+  button#go:hover:not(:disabled) { background: var(--acc-dark); }
+
+  button#reset {
+    flex: 0 0 auto;
+    background: #fff;
+    color: var(--fg);
+    border-color: var(--line);
+  }
+
+  button#reset:hover { background: var(--bg); }
+
+  button:focus-visible {
+    outline: 3px solid rgba(9, 105, 218, .35);
+    outline-offset: 2px;
+  }
+
+  button:disabled { opacity: .6; cursor: wait; }
+
+  footer {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+    color: var(--muted);
+    font-size: .84rem;
+    text-align: center;
+  }
+
+  footer a { color: var(--acc); }
+
+  @media (max-width: 520px) {
+    .row { grid-template-columns: 1fr; gap: 0; }
+    .card { padding: 16px; }
+    details.guide summary { padding: 14px 16px; }
+    .guide-body { padding: 0 16px 16px; }
+  }
 </style>
 </head>
+
 <body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <h1>Generator Laporan Praktikum</h1>
+      <p>Isi tiap bagian, lalu unduh sebagai dokumen Word (.docx).</p>
+    </div>
+
+    <div class="status" id="status" data-state="idle" role="status" aria-live="polite">
+      <span id="status-text">Draf tersimpan otomatis saat mengetik</span>
+    </div>
+  </div>
+</header>
+
 <main>
-  <h1>Generator Laporan Praktikum</h1>
-  <div class="help">
-    Isi tiap kolom, lalu klik <b>Buat Laporan</b>. Format (font, margin, spasi, penomoran) diatur otomatis.<br>
-    Rumus: LaTeX diapit dolar, mis. <code>$I_{1}=\frac{V_{1}}{R_{1}}$</code>. Satu baris yang hanya berisi rumus akan di tengah.<br>
-    Miring: <code>*teks*</code> &nbsp; Tebal: <code>**teks**</code> &nbsp; Subjudul (Dasar Teori): <code>## Judul</code><br>
-    Gambar dan logo disisipkan manual di Word. Draf tersimpan otomatis di perangkat ini.
-  </div>
 
-  <h2>Sampul</h2>
-  <div class="row">
-    <div><label for="modul">Nomor modul</label><input id="modul" placeholder="4"></div>
-    <div><label for="waktu">Bulan dan tahun</label><input id="waktu" placeholder="November 2026"></div>
-  </div>
-  <label for="judul">Judul praktikum</label><input id="judul" placeholder="Analisis Rangkaian Mesh">
-  <label for="matkul">Mata kuliah</label><input id="matkul" placeholder="Rangkaian Listrik 1">
-  <label for="dosen">Dosen pembimbing</label><input id="dosen">
-  <label for="nama">Nama</label><input id="nama">
-  <div class="row">
-    <div><label for="nim">NIM</label><input id="nim"></div>
-    <div><label for="kelas">Kelas</label><input id="kelas" placeholder="D4 TRSE 26 – C"></div>
-  </div>
-  <label for="institusi">Blok institusi (satu baris per baris)</label>
-  <textarea id="institusi" style="min-height:110px"></textarea>
+  <details class="guide">
+    <summary>Panduan penulisan</summary>
 
-  <h2>Isi laporan</h2>
-  <label for="latar">Latar belakang</label><textarea id="latar"></textarea><small>Satu baris = satu paragraf.</small>
-  <label for="tujuan">Tujuan praktikum</label><textarea id="tujuan"></textarea><small>Satu baris = satu butir (a, b, c).</small>
-  <label for="teori">Dasar teori</label><textarea id="teori"></textarea><small>Satu baris = satu paragraf. Awali <code>## </code> untuk subjudul, <code>- </code> untuk butir.</small>
-  <label for="alat">Alat dan bahan</label><textarea id="alat"></textarea><small>Satu baris = satu butir.</small>
-  <label for="prosedur">Prosedur percobaan</label><textarea id="prosedur"></textarea><small>Awali <code>- </code> untuk langkah bernomor huruf. Baris berawalan "Gambar" atau "Tabel" jadi keterangan di tengah dan miring.</small>
-  <label for="kesimpulan">Kesimpulan</label><textarea id="kesimpulan"></textarea><small>Satu baris = satu butir.</small>
-  <label for="pustaka">Daftar pustaka</label><textarea id="pustaka"></textarea><small>Satu baris = satu pustaka, mis. <code>[1] Penulis, *Judul Buku*, ...</code></small>
+    <div class="guide-body">
+      <p>
+        Satu baris adalah satu paragraf atau satu butir, jadi baris kosong tidak diperlukan.
+        Format font, margin, spasi, dan penomoran bab diatur otomatis.
+      </p>
 
-  <div class="btns">
-    <button type="button" id="reset" class="sec">Kosongkan</button>
-    <button type="button" id="go">Buat Laporan (.docx)</button>
-  </div>
+      <div class="scroll-x">
+        <table class="syntax">
+          <thead>
+            <tr><th>Tulisan</th><th>Hasil di dokumen</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>## Judul</code></td><td>Subjudul bertingkat a., b., c.</td></tr>
+            <tr><td><code>### Judul</code></td><td>Subjudul bertingkat 1), 2), 3)</td></tr>
+            <tr><td><code>- teks</code></td><td>Butir dengan tanda titik</td></tr>
+            <tr><td><code>1) teks</code> atau <code>1. teks</code></td><td>Butir bernomor</td></tr>
+            <tr><td><code>*teks*</code></td><td><em>Huruf miring</em></td></tr>
+            <tr><td><code>**teks**</code></td><td><strong>Huruf tebal</strong></td></tr>
+            <tr><td><code>$I_{1}=\frac{V_{1}}{R_{1}}$</code></td><td>Rumus (LaTeX diapit tanda dolar). Jika sebaris sendiri, rumus tampil di tengah</td></tr>
+            <tr><td><code>Gambar 4.2. Keterangan</code></td><td>Keterangan di tengah dan miring (juga untuk awalan <code>Tabel</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Logo dipilih lewat kolom upload di bagian Sampul. Gambar dan tabel hasil
+        percobaan (Bab IV) disisipkan manual di Word.
+      </p>
+    </div>
+  </details>
+
+
+  <!-- ============ SAMPUL ============ -->
+
+  <section class="card">
+    <div class="card-head">
+      <span class="badge">1</span>
+      <h2>Sampul</h2>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="modul">Nomor modul</label>
+        <input id="modul" placeholder="4">
+      </div>
+
+      <div>
+        <label for="waktu">Bulan dan tahun</label>
+        <input id="waktu" placeholder="November 2026">
+      </div>
+    </div>
+
+    <label for="judul">Judul praktikum</label>
+    <input id="judul" placeholder="Analisis Rangkaian Mesh">
+
+    <label for="matkul">Mata kuliah</label>
+    <input id="matkul" placeholder="Rangkaian Listrik 1">
+
+    <label for="dosen">Dosen pembimbing</label>
+    <input id="dosen">
+
+    <label for="nama">Nama</label>
+    <input id="nama">
+
+    <div class="row">
+      <div>
+        <label for="nim">NIM</label>
+        <input id="nim">
+      </div>
+
+      <div>
+        <label for="kelas">Kelas</label>
+        <input id="kelas" placeholder="D4 TRSE 26 – C">
+      </div>
+    </div>
+
+    <label for="logo">Logo (PNG/JPG)</label>
+    <input id="logo" type="file" accept="image/png,image/jpeg">
+    <div class="meta">
+      <span class="hint">
+        Opsional. Logo tidak ikut tersimpan di draf, jadi pilih ulang setelah halaman dimuat ulang.
+      </span>
+    </div>
+
+    <label for="institusi">Blok institusi</label>
+    <textarea id="institusi" class="short"></textarea>
+    <div class="meta">
+      <span class="hint">Satu baris per baris di sampul.</span>
+    </div>
+  </section>
+
+
+  <!-- ============ BAB I ============ -->
+
+  <section class="card">
+    <div class="card-head">
+      <span class="badge">I</span>
+      <h2>Pendahuluan</h2>
+    </div>
+
+    <div class="sub">
+      <label for="latar">A. Latar belakang</label>
+      <textarea id="latar"></textarea>
+      <div class="meta">
+        <span class="hint">Satu baris = satu paragraf.</span>
+        <span class="count" id="count-latar">0 kata</span>
+      </div>
+    </div>
+
+    <div class="sub">
+      <label for="tujuan">B. Tujuan praktikum</label>
+      <textarea id="tujuan" class="short"></textarea>
+      <div class="meta">
+        <span class="hint">Satu baris = satu butir. Huruf a, b, c ditambahkan otomatis.</span>
+        <span class="count" id="count-tujuan">0 kata</span>
+      </div>
+    </div>
+
+    <div class="sub">
+      <label for="teori">C. Dasar teori</label>
+      <textarea id="teori"></textarea>
+      <div class="meta">
+        <span class="hint">
+          Satu baris = satu paragraf. Awali <code>## </code> untuk subjudul,
+          <code>- </code> untuk butir.
+        </span>
+        <span class="count" id="count-teori">0 kata</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ BAB II ============ -->
+
+  <section class="card">
+    <div class="card-head">
+      <span class="badge">II</span>
+      <h2>Alat dan bahan</h2>
+    </div>
+
+    <textarea id="alat" class="short" aria-label="Alat dan bahan"></textarea>
+    <div class="meta">
+      <span class="hint">Satu baris = satu butir. Huruf a, b, c ditambahkan otomatis.</span>
+      <span class="count" id="count-alat">0 kata</span>
+    </div>
+  </section>
+
+
+  <!-- ============ BAB III ============ -->
+
+  <section class="card">
+    <div class="card-head">
+      <span class="badge">III</span>
+      <h2>Prosedur percobaan</h2>
+    </div>
+
+    <textarea id="prosedur" aria-label="Prosedur percobaan"></textarea>
+    <div class="meta">
+      <span class="hint">
+        Gunakan <code>## </code> dan <code>### </code> untuk subjudul, <code>1) </code> untuk langkah.
+        Baris berawalan "Gambar" atau "Tabel" menjadi keterangan di tengah dan miring.
+        Bab IV (hasil dan pembahasan) diisi manual di Word.
+      </span>
+      <span class="count" id="count-prosedur">0 kata</span>
+    </div>
+  </section>
+
+
+  <!-- ============ BAB V ============ -->
+
+  <section class="card">
+    <div class="card-head">
+      <span class="badge">V</span>
+      <h2>Penutup</h2>
+    </div>
+
+    <label for="kesimpulan">Kesimpulan</label>
+    <textarea id="kesimpulan" class="short"></textarea>
+    <div class="meta">
+      <span class="hint">Satu baris = satu butir. Nomor 1, 2, 3 ditambahkan otomatis.</span>
+      <span class="count" id="count-kesimpulan">0 kata</span>
+    </div>
+  </section>
+
+
+  <!-- ============ BAB VI ============ -->
+
+  <section class="card">
+    <div class="card-head">
+      <span class="badge">VI</span>
+      <h2>Daftar pustaka</h2>
+    </div>
+
+    <textarea id="pustaka" class="short" aria-label="Daftar pustaka"></textarea>
+    <div class="meta">
+      <span class="hint">
+        Satu baris = satu pustaka, mis. <code>[1] Penulis, *Judul Buku*, ...</code>
+      </span>
+      <span class="count" id="count-pustaka">0 kata</span>
+    </div>
+  </section>
+
+
+  <!-- ============ TOMBOL ============ -->
+
+  <section class="card">
+    <div class="actions">
+      <button type="button" id="reset">Kosongkan</button>
+      <button type="button" id="go">Buat Laporan (.docx)</button>
+    </div>
+  </section>
+
 </main>
 
+<footer>
+  Semua data diproses di browser dan tidak dikirim ke server.
+  &middot;
+  <a href="https://github.com/rivanfathur-rgb/laporan-praktikum">Kode sumber di GitHub</a>
+</footer>
+
+
+<!-- Library DOCX -->
 <script src="vendor/docx.js"></script>
+
+<!-- Logika pembuatan dokumen -->
 <script src="app.js"></script>
+
+
 <script>
-  const IDS = ["modul","waktu","judul","matkul","dosen","nama","nim","kelas","institusi","latar","tujuan","teori","alat","prosedur","kesimpulan","pustaka"];
-  const INSTITUSI = "UNIVERSITAS NEGERI MALANG\nFAKULTAS VOKASI\nDEPARTEMEN TEKNOLOGI REKAYASA\nPROGRAM STUDI D4 TEKNOLOGI REKAYASA SISTEM ELEKTRONIKA";
-  const $ = id => document.getElementById(id);
-  const KEY = "laporan-draf-v1";
-  function load() {
-    let s = {};
-    try { s = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
-    IDS.forEach(id => { $(id).value = s[id] ?? (id === "institusi" ? INSTITUSI : ""); });
+
+// ======================================
+// KONFIGURASI
+// ======================================
+
+const IDS = [
+  "modul", "waktu", "judul", "matkul", "dosen",
+  "nama", "nim", "kelas", "institusi", "latar",
+  "tujuan", "teori", "alat", "prosedur",
+  "kesimpulan", "pustaka"
+];
+
+// Kolom yang menampilkan penghitung kata
+const COUNT_IDS = [
+  "latar", "tujuan", "teori", "alat",
+  "prosedur", "kesimpulan", "pustaka"
+];
+
+const INSTITUSI = `UNIVERSITAS NEGERI MALANG
+FAKULTAS VOKASI
+DEPARTEMEN TEKNOLOGI REKAYASA
+PROGRAM STUDI D4 TEKNOLOGI REKAYASA SISTEM ELEKTRONIKA`;
+
+const $ = id => document.getElementById(id);
+
+const KEY = "laporan-draf-v1";
+
+let LOGO = null;
+
+
+// ======================================
+// INDIKATOR DRAF
+// ======================================
+
+function setStatus(state, text) {
+
+  $("status").dataset.state = state;
+  $("status-text").textContent = text;
+
+}
+
+function jamSekarang() {
+
+  return new Date().toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+}
+
+
+// ======================================
+// PENGHITUNG KATA
+// ======================================
+
+function countWords(text) {
+
+  const t = text.trim();
+
+  return t ? t.split(/\s+/).length : 0;
+
+}
+
+function updateCount(id) {
+
+  const el = $("count-" + id);
+
+  if (el) {
+    el.textContent = countWords($(id).value) + " kata";
   }
-  function save() {
-    const s = {}; IDS.forEach(id => s[id] = $(id).value);
-    try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+
+}
+
+function updateAllCounts() {
+
+  COUNT_IDS.forEach(updateCount);
+
+}
+
+
+// ======================================
+// TINGGI KOLOM OTOMATIS (maksimal 380 px)
+// ======================================
+
+function autoGrow(el) {
+
+  el.style.height = "auto";
+
+  el.style.height =
+    Math.min(el.scrollHeight + 2, 380) + "px";
+
+}
+
+function growAll() {
+
+  IDS.forEach(id => {
+
+    const el = $(id);
+
+    if (el.tagName === "TEXTAREA") {
+      autoGrow(el);
+    }
+
+  });
+
+}
+
+
+// ======================================
+// LOAD DRAFT
+// ======================================
+
+function load() {
+
+  let s = {};
+  let adaDraf = false;
+
+  try {
+
+    const raw = localStorage.getItem(KEY);
+
+    if (raw) {
+      s = JSON.parse(raw);
+      adaDraf = true;
+    }
+
+  } catch (e) {
+
+    console.warn("Gagal membaca draft:", e);
+
   }
-  IDS.forEach(id => $(id).addEventListener("input", save));
-  $("reset").onclick = () => { if (confirm("Kosongkan semua isian?")) { try { localStorage.removeItem(KEY); } catch (e) {} load(); } };
-  $("go").onclick = async () => {
-    const d = {}; IDS.forEach(id => d[id] = $(id).value);
-    try {
-      const blob = await docx.Packer.toBlob(buildReport(d));
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "Laporan Praktikum Modul " + (d.modul || "") + ".docx";
-      document.body.appendChild(a); a.click(); a.remove();
-    } catch (e) { alert("Gagal membuat laporan: " + e.message); }
-  };
-  load();
+
+  IDS.forEach(id => {
+
+    $(id).value =
+      s[id] ?? (id === "institusi" ? INSTITUSI : "");
+
+  });
+
+  updateAllCounts();
+  growAll();
+
+  if (adaDraf) {
+    setStatus("ok", "Draf dimuat dari perangkat ini");
+  }
+
+}
+
+
+// ======================================
+// SAVE DRAFT
+// ======================================
+
+function save() {
+
+  const s = {};
+
+  IDS.forEach(id => {
+    s[id] = $(id).value;
+  });
+
+  try {
+
+    localStorage.setItem(KEY, JSON.stringify(s));
+
+    setStatus("ok", "Draf tersimpan pukul " + jamSekarang());
+
+  } catch (e) {
+
+    console.warn("Gagal menyimpan draft:", e);
+
+    setStatus("error", "Draf tidak dapat disimpan di perangkat ini");
+
+  }
+
+}
+
+
+IDS.forEach(id => {
+
+  $(id).addEventListener("input", () => {
+
+    save();
+    updateCount(id);
+
+    if ($(id).tagName === "TEXTAREA") {
+      autoGrow($(id));
+    }
+
+  });
+
+});
+
+
+// ======================================
+// UPLOAD LOGO
+// ======================================
+
+$("logo").addEventListener("change", async e => {
+
+  const f = e.target.files[0];
+
+  if (!f) {
+    LOGO = null;
+    return;
+  }
+
+  try {
+
+    if (!["image/png", "image/jpeg"].includes(f.type)) {
+      throw new Error("Format logo harus PNG atau JPG.");
+    }
+
+    const data = new Uint8Array(await f.arrayBuffer());
+
+    const url = URL.createObjectURL(f);
+
+    const img = new Image();
+
+    img.onload = () => {
+
+      LOGO = {
+        data,
+        type: f.type.includes("png") ? "png" : "jpg",
+        ratio: img.height / img.width
+      };
+
+      URL.revokeObjectURL(url);
+
+      console.log("Logo berhasil dimuat.");
+
+    };
+
+    img.onerror = () => {
+
+      URL.revokeObjectURL(url);
+
+      LOGO = null;
+
+      alert("Gagal membaca gambar logo.");
+
+    };
+
+    img.src = url;
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert(err.message);
+
+  }
+
+});
+
+
+// ======================================
+// GENERATE LAPORAN
+// ======================================
+
+$("go").addEventListener("click", async () => {
+
+  const btn = $("go");
+
+  try {
+
+    btn.disabled = true;
+    btn.textContent = "Sedang membuat laporan...";
+
+
+    // Periksa library DOCX
+
+    if (!window.docx || !window.docx.Packer) {
+
+      throw new Error(
+        "Library docx.js tidak tersedia. Periksa folder vendor."
+      );
+
+    }
+
+
+    // Periksa fungsi pembuat dokumen
+
+    if (typeof window.buildReport !== "function") {
+
+      throw new Error(
+        "Fungsi buildReport tidak ditemukan. Periksa app.js."
+      );
+
+    }
+
+
+    // Ambil seluruh data input
+
+    const data = {};
+
+    IDS.forEach(id => {
+
+      data[id] = $(id).value;
+
+    });
+
+    data.logo = LOGO;
+
+
+    // Buat dokumen Word
+
+    const report = window.buildReport(data);
+
+
+    // Konversi dokumen menjadi Blob
+
+    const blob = await window.docx.Packer.toBlob(report);
+
+
+    // Download file
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "Laporan_Praktikum.docx";
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+
+    // Bersihkan URL sementara
+
+    setTimeout(() => {
+
+      URL.revokeObjectURL(url);
+
+    }, 3000);
+
+
+    // Simpan draft
+
+    save();
+
+
+    console.log("Laporan berhasil dibuat.");
+
+  } catch (err) {
+
+    console.error("Gagal membuat laporan:", err);
+
+    alert(
+      "Gagal membuat laporan:\n" + err.message
+    );
+
+  } finally {
+
+    btn.disabled = false;
+
+    btn.textContent = "Buat Laporan (.docx)";
+
+  }
+
+});
+
+
+// ======================================
+// RESET
+// ======================================
+
+$("reset").addEventListener("click", () => {
+
+  if (!confirm("Yakin ingin mengosongkan semua kolom?")) {
+    return;
+  }
+
+  IDS.forEach(id => {
+
+    $(id).value = "";
+
+  });
+
+  $("institusi").value = INSTITUSI;
+
+  $("logo").value = "";
+
+  LOGO = null;
+
+  updateAllCounts();
+  growAll();
+
+  save();
+
+});
+
+
+// ======================================
+// INITIALIZATION
+// ======================================
+
+load();
+
+console.log("Generator laporan berhasil diinisialisasi.");
+
 </script>
+
 </body>
 </html>
