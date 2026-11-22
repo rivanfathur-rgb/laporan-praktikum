@@ -410,6 +410,20 @@
     padding: 16px 8px 32px;
   }
 
+  .pv-count {
+    color: var(--muted);
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .pv-label {
+    text-align: center;
+    color: var(--muted);
+    font-size: .78rem;
+    margin: -12px 0 18px;
+  }
+
   .pv-loading {
     text-align: center;
     color: var(--muted);
@@ -682,8 +696,9 @@
 <div class="pv" id="pv" hidden role="dialog" aria-modal="true" aria-labelledby="pv-title">
   <div class="pv-bar">
     <span class="pv-title" id="pv-title">Pratinjau</span>
+    <span class="pv-count" id="pv-count"></span>
     <span class="pv-note">
-      Perkiraan tampilan untuk memeriksa isi dan format. Pembagian halaman, font, dan rumus di Word bisa berbeda.
+      Perkiraan tampilan. Batas halaman di Word bisa bergeser beberapa baris.
     </span>
     <button type="button" id="pv-download">Unduh (.docx)</button>
     <button type="button" id="pv-close">Tutup</button>
@@ -694,10 +709,12 @@
 </div>
 
 
-
+<!-- Pustaka pratinjau. docx-preview dan docx.js sama-sama memakai nama
+     global "docx", jadi referensi pratinjau disimpan dulu sebelum docx.js dimuat. -->
 <script src="vendor/jszip.min.js"></script>
 <script src="vendor/docx-preview.min.js"></script>
 <script>window.docxPreview = window.docx;</script>
+<script src="pratinjau.js"></script>
 
 <!-- Library DOCX -->
 <script src="vendor/docx.js"></script>
@@ -1117,6 +1134,7 @@ function tutupPratinjau() {
 
   $("pv-body").innerHTML = "";
   $("pv-style").innerHTML = "";
+  $("pv-count").textContent = "";
 
   pvBlob = null;
 
@@ -1178,6 +1196,19 @@ async function bukaPratinjau() {
         useBase64URL: true
       }
     );
+
+    // Bagi isi menjadi halaman seukuran kertas
+
+    if (window.PaginasiPratinjau) {
+
+      const jumlah = await window.PaginasiPratinjau.susun(
+        $("pv-body").querySelector(".docx-wrapper"),
+        pvBlob
+      );
+
+      $("pv-count").textContent = jumlah + " halaman (perkiraan)";
+
+    }
 
     fitPages();
 
