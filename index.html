@@ -350,6 +350,82 @@
 
   footer a { color: var(--acc); }
 
+
+  /* ---------- Pratinjau ---------- */
+
+  button#preview {
+    flex: 0 0 auto;
+    background: #fff;
+    color: var(--acc-dark);
+    border-color: var(--acc);
+  }
+
+  button#preview:hover:not(:disabled) { background: var(--acc-soft); }
+
+  .pv {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    background: #e9edf1;
+  }
+
+  .pv[hidden] { display: none; }
+
+  .pv-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .pv-title { font-weight: 700; }
+
+  .pv-note {
+    flex: 1 1 220px;
+    color: var(--muted);
+    font-size: .82rem;
+  }
+
+  .pv-bar button { padding: 8px 16px; }
+
+  button#pv-download { background: var(--acc); color: #fff; }
+  button#pv-download:hover { background: var(--acc-dark); }
+
+  button#pv-close {
+    background: #fff;
+    color: var(--fg);
+    border-color: var(--line);
+  }
+
+  button#pv-close:hover { background: var(--bg); }
+
+  .pv-body {
+    flex: 1;
+    overflow: auto;
+    padding: 16px 8px 32px;
+  }
+
+  .pv-loading {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 0;
+  }
+
+  .pv-body .docx-wrapper {
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .pv-body .docx-wrapper > section.docx {
+    margin: 0 auto 20px !important;
+    box-shadow: 0 2px 10px rgba(31, 35, 40, .2);
+  }
+
   @media (max-width: 520px) {
     .row { grid-template-columns: 1fr; gap: 0; }
     .card { padding: 16px; }
@@ -404,8 +480,8 @@
       </div>
 
       <p>
-        Logo dipilih lewat kolom upload di bagian Sampul. Gambar disisipkan manual di Word.
-        Hasil percobaan dan analisis (Bab IV) ditulis tangan, jadi tidak ada di dokumen ini.
+        Logo dipilih lewat kolom upload di bagian Sampul. Gambar dan tabel hasil
+        percobaan (Bab IV) disisipkan manual di Word.
       </p>
     </div>
   </details>
@@ -540,7 +616,7 @@
       <span class="hint">
         Gunakan <code>## </code> dan <code>### </code> untuk subjudul, <code>1) </code> untuk langkah.
         Baris berawalan "Gambar" atau "Tabel" menjadi keterangan di tengah dan miring.
-        Bab IV (hasil dan analisis) ditulis tangan, jadi tidak ada di dokumen ini.
+        Bab IV (hasil dan pembahasan) diisi manual di Word.
       </span>
       <span class="count" id="count-prosedur">0 kata</span>
     </div>
@@ -587,6 +663,7 @@
   <section class="card">
     <div class="actions">
       <button type="button" id="reset">Kosongkan</button>
+      <button type="button" id="preview">Pratinjau</button>
       <button type="button" id="go">Buat Laporan (.docx)</button>
     </div>
   </section>
@@ -599,6 +676,28 @@
   <a href="https://github.com/rivanfathur-rgb/laporan-praktikum">Kode sumber di GitHub</a>
 </footer>
 
+
+<!-- ============ PRATINJAU ============ -->
+
+<div class="pv" id="pv" hidden role="dialog" aria-modal="true" aria-labelledby="pv-title">
+  <div class="pv-bar">
+    <span class="pv-title" id="pv-title">Pratinjau</span>
+    <span class="pv-note">
+      Perkiraan tampilan untuk memeriksa isi dan format. Pembagian halaman, font, dan rumus di Word bisa berbeda.
+    </span>
+    <button type="button" id="pv-download">Unduh (.docx)</button>
+    <button type="button" id="pv-close">Tutup</button>
+  </div>
+
+  <div class="pv-body" id="pv-body"></div>
+  <div id="pv-style"></div>
+</div>
+
+
+
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/docx-preview.min.js"></script>
+<script>window.docxPreview = window.docx;</script>
 
 <!-- Library DOCX -->
 <script src="vendor/docx.js"></script>
@@ -865,6 +964,82 @@ $("logo").addEventListener("change", async e => {
 
 
 // ======================================
+// PEMBUATAN DOKUMEN (dipakai unduh dan pratinjau)
+// ======================================
+
+async function buatBlob() {
+
+  // Periksa library DOCX
+
+  if (!window.docx || !window.docx.Packer) {
+
+    throw new Error(
+      "Library docx.js tidak tersedia. Periksa folder vendor."
+    );
+
+  }
+
+
+  // Periksa fungsi pembuat dokumen
+
+  if (typeof window.buildReport !== "function") {
+
+    throw new Error(
+      "Fungsi buildReport tidak ditemukan. Periksa app.js."
+    );
+
+  }
+
+
+  // Ambil seluruh data input
+
+  const data = {};
+
+  IDS.forEach(id => {
+
+    data[id] = $(id).value;
+
+  });
+
+  data.logo = LOGO;
+
+
+  // Buat dokumen Word, lalu ubah menjadi Blob
+
+  const report = window.buildReport(data);
+
+  return window.docx.Packer.toBlob(report);
+
+}
+
+function unduhBlob(blob) {
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "Laporan_Praktikum.docx";
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  a.remove();
+
+
+  // Bersihkan URL sementara
+
+  setTimeout(() => {
+
+    URL.revokeObjectURL(url);
+
+  }, 3000);
+
+}
+
+
+// ======================================
 // GENERATE LAPORAN
 // ======================================
 
@@ -877,81 +1052,13 @@ $("go").addEventListener("click", async () => {
     btn.disabled = true;
     btn.textContent = "Sedang membuat laporan...";
 
+    const blob = await buatBlob();
 
-    // Periksa library DOCX
-
-    if (!window.docx || !window.docx.Packer) {
-
-      throw new Error(
-        "Library docx.js tidak tersedia. Periksa folder vendor."
-      );
-
-    }
-
-
-    // Periksa fungsi pembuat dokumen
-
-    if (typeof window.buildReport !== "function") {
-
-      throw new Error(
-        "Fungsi buildReport tidak ditemukan. Periksa app.js."
-      );
-
-    }
-
-
-    // Ambil seluruh data input
-
-    const data = {};
-
-    IDS.forEach(id => {
-
-      data[id] = $(id).value;
-
-    });
-
-    data.logo = LOGO;
-
-
-    // Buat dokumen Word
-
-    const report = window.buildReport(data);
-
-
-    // Konversi dokumen menjadi Blob
-
-    const blob = await window.docx.Packer.toBlob(report);
-
-
-    // Download file
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = "Laporan_Praktikum.docx";
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    a.remove();
-
-
-    // Bersihkan URL sementara
-
-    setTimeout(() => {
-
-      URL.revokeObjectURL(url);
-
-    }, 3000);
-
+    unduhBlob(blob);
 
     // Simpan draft
 
     save();
-
 
     console.log("Laporan berhasil dibuat.");
 
@@ -968,6 +1075,175 @@ $("go").addEventListener("click", async () => {
     btn.disabled = false;
 
     btn.textContent = "Buat Laporan (.docx)";
+
+  }
+
+});
+
+
+// ======================================
+// PRATINJAU
+// ======================================
+
+let pvBlob = null;
+let pvOpener = null;
+
+// Sesuaikan lebar halaman dengan lebar layar (layar sempit = diperkecil)
+
+function fitPages() {
+
+  const wrap = $("pv-body").querySelector(".docx-wrapper");
+
+  if (!wrap) return;
+
+  wrap.style.zoom = 1;
+
+  const page = wrap.querySelector("section.docx");
+
+  if (!page) return;
+
+  const pageWidth = page.getBoundingClientRect().width;
+  const available = $("pv-body").clientWidth - 16;
+
+  wrap.style.zoom = Math.min(1, available / pageWidth);
+
+}
+
+function tutupPratinjau() {
+
+  $("pv").hidden = true;
+
+  document.body.style.overflow = "";
+
+  $("pv-body").innerHTML = "";
+  $("pv-style").innerHTML = "";
+
+  pvBlob = null;
+
+  if (pvOpener) {
+    pvOpener.focus();
+  }
+
+}
+
+async function bukaPratinjau() {
+
+  const btn = $("preview");
+
+  // Simpan elemen pembuka sebelum tombol dinonaktifkan (agar fokus bisa kembali)
+
+  pvOpener = btn;
+
+  try {
+
+    btn.disabled = true;
+    btn.textContent = "Menyiapkan pratinjau...";
+
+    if (!window.docxPreview || !window.docxPreview.renderAsync) {
+
+      throw new Error(
+        "Library docx-preview tidak tersedia. Periksa folder vendor."
+      );
+
+    }
+
+    pvBlob = await buatBlob();
+
+    // Tampilkan dulu agar ukuran bisa dihitung saat penataan halaman
+
+    $("pv-body").innerHTML =
+      '<div class="pv-loading">Menyiapkan halaman...</div>';
+
+    $("pv").hidden = false;
+
+    document.body.style.overflow = "hidden";
+
+    $("pv-close").focus();
+
+    $("pv-body").innerHTML = "";
+
+    await window.docxPreview.renderAsync(
+      pvBlob,
+      $("pv-body"),
+      $("pv-style"),
+      {
+        className: "docx",
+        inWrapper: true,
+        ignoreWidth: false,
+        ignoreHeight: false,
+        breakPages: true,
+        ignoreLastRenderedPageBreak: true,
+        renderHeaders: false,
+        renderFooters: false,
+        useBase64URL: true
+      }
+    );
+
+    fitPages();
+
+  } catch (err) {
+
+    console.error("Gagal membuat pratinjau:", err);
+
+    tutupPratinjau();
+
+    alert(
+      "Gagal membuat pratinjau:\n" + err.message
+    );
+
+  } finally {
+
+    btn.disabled = false;
+
+    btn.textContent = "Pratinjau";
+
+  }
+
+}
+
+$("preview").addEventListener("click", bukaPratinjau);
+
+$("pv-close").addEventListener("click", tutupPratinjau);
+
+$("pv-download").addEventListener("click", () => {
+
+  if (pvBlob) {
+    unduhBlob(pvBlob);
+  }
+
+});
+
+window.addEventListener("resize", () => {
+
+  if (!$("pv").hidden) {
+    fitPages();
+  }
+
+});
+
+document.addEventListener("keydown", e => {
+
+  if ($("pv").hidden) return;
+
+  if (e.key === "Escape") {
+    tutupPratinjau();
+    return;
+  }
+
+  // Fokus tetap berputar di dua tombol pratinjau
+
+  if (e.key === "Tab") {
+
+    const first = $("pv-download");
+    const last = $("pv-close");
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
 
   }
 
